@@ -1,23 +1,20 @@
 ﻿Virtual Disk File System Header (virt_disk.h)
 
-This header file defines the core data structures and constants for a simple virtual disk and
-file system. It is intended for use in an educational or small-scale project to simulate file
-system operations like formatting, loading, and managing files and directories.
-File System Structure
+This header file defines the core data structures and constants for a simple virtual disk file system.
 
 The virtual disk is organized into several key components:
 
 SuperBlock (SuperBlock): Located at the beginning of the disk, this block contains essential
-			 metadata about the file system, including its magic number, block size,
-			 total blocks, and a count of free inodes and blocks.
+			             metadata about the file system, including its magic number, block size,
+			             total blocks, and a count of free inodes and blocks.
 
 Block Bitmap (block_bitmap): A bit-array that tracks the allocation status of every block on 
-			     the disk. A 1 indicates an allocated block, and a 0 indicates
-			     free block.
+			                 the disk. A 1 indicates an allocated block, and A 0 indicates
+			                 free block.
 
 Inode Table (inode_table): A table of fixed-size Inode structures. Each Inode represents a file
-			   or a directory and contains metadata such as file size, pointers to
-			   data blocks, and the filename.
+			               or a directory and contains metadata such as file size, pointers to
+			               data blocks, and the filename.
 
 Data Blocks: The main storage area where the actual file content and directory entries are stored.
 
@@ -76,3 +73,4 @@ The header file declares several functions to manage the virtual disk and its fi
 Usage
 
 This header file will be used for later modules of project . here the static assertion make sure that if its included then at least the structure was fine
+
