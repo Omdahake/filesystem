@@ -5,6 +5,11 @@
 #include <stddef.h> //size_t type and offsetof macro
 #include <unistd.h> // for ssize_t 
 #include <sys/types.h> // off_t (file offset type)
+typedef uint8_t u8;
+typedef uint32_t u32;
+typedef uint64_t u64;
+typedef size_t   usize;
+typedef ssize_t  ssize;
 
 #define DISK_PATH "virtual_disk.img" //name for disk
 #define FS_MAGIC 0x47525346 //some random string 'G' 'R' 'S' 'F' 
@@ -16,24 +21,24 @@
 #define DIRECT_PTRS   20          // direct block pointers 
 
 // derived disk size from block size and number of blocks 
-#define DISK_SIZE   ((uint64_t)BLOCK_SIZE * (uint64_t)TOTAL_BLOCKS)
-#define BITMAP_SIZE ((TOTAL_BLOCKS + 7) / 8)  // bitmap size calculation
+#define DISK_SIZE   ((u64)BLOCK_SIZE * (u64)TOTAL_BLOCKS)
+#define BITMAP_SIZE ((TOTAL_BLOCKS + 7) / 8)  // some additional space intentionaly
 
 // ---------------- SuperBlock ----------------
 
 #define SB_U32_FIELDS 9  //there are total 9 attributes of superblock
-#define SB_FIXED_BYTES (SB_U32_FIELDS * sizeof(uint32_t)) //since all are of size uint32_t
+#define SB_FIXED_BYTES (SB_U32_FIELDS * sizeof(u32)) //since all are of size u32
 
 typedef struct SuperBlock {
-    uint32_t magic;
-    uint32_t block_size;
-    uint32_t total_blocks;
-    uint32_t free_blocks;
-    uint32_t total_inodes;
-    uint32_t free_inodes;
-    uint32_t inode_table_block;   // first block of inode table 
-    uint32_t block_bitmap_block;  // first block of bitmap 
-    uint32_t data_block_start;    // first usable data block 
+    u32 magic;
+    u32 block_size;
+    u32 total_blocks;
+    u32 free_blocks;
+    u32 total_inodes;
+    u32 free_inodes;
+    u32 inode_table_block;   // first block of inode table 
+    u32 block_bitmap_block;  // first block of bitmap 
+    u32 data_block_start;    // first usable data block 
     uint8_t  reserved[BLOCK_SIZE - SB_FIXED_BYTES];
 } SuperBlock;
 
@@ -48,10 +53,10 @@ _Static_assert(sizeof(SuperBlock) == BLOCK_SIZE,
 
 // calculating Inode size to add padding so name start at 64th byte 
 enum {
-    INODE_PREFIX_BYTES = sizeof(uint32_t) +
-        sizeof(uint32_t) +
-        (sizeof(uint32_t) * DIRECT_PTRS) +
-        sizeof(uint32_t) +
+    INODE_PREFIX_BYTES = sizeof(u32) +
+        sizeof(u32) +
+        (sizeof(u32) * DIRECT_PTRS) +
+        sizeof(u32) +
         sizeof(uint8_t)  +
         sizeof(uint8_t)  
 };
@@ -59,10 +64,10 @@ enum {
 #define INODE_PADDING_BYTES (INODE_NAME_OFFSET - INODE_PREFIX_BYTES)
 
 typedef struct Inode {
-    uint32_t id;                    // inode number 
-    uint32_t size;                  // size in bytes 
-    uint32_t direct[DIRECT_PTRS];   // direct block pointers 
-    uint32_t parent;                // parent inode id 
+    u32 id;                    // inode number 
+    u32 size;                  // size in bytes 
+    u32 direct[DIRECT_PTRS];   // direct block pointers 
+    u32 parent;                // parent inode id 
 
     uint8_t  is_dir;                // 1=dir, 0=file 
     uint8_t  used;                  // 1=allocated, 0=free 
@@ -81,14 +86,14 @@ _Static_assert(sizeof(Inode) == (INODE_NAME_OFFSET + MAX_FILENAME),
 
 typedef struct DirEntry {
     char name[MAX_FILENAME];
-    uint32_t inode_id;
+    u32 inode_id;
 } DirEntry;
 
 // ---------------- Globals ---------------- 
 
 extern SuperBlock sb;
 extern Inode inode_table[MAX_INODES];
-extern uint8_t block_bitmap[BITMAP_SIZE];
+extern u8 block_bitmap[TOTAL_BLOCKS/8 + 1];
 extern int disk_fd;
 
 // ---------------- Bitmap Helpers ---------------- 
@@ -111,15 +116,14 @@ int sync_metadata(void);    // write metadata back to disk
 
 // allocation helpers 
 int allocate_inode(void);
-int free_inode(int ino);
-uint32_t allocate_block(void);
+int free_inode(u32 ino);
+u32 allocate_block(void);
 
 // low-level block read/write 
-ssize_t read_block(uint32_t block_idx, void *buf);
-ssize_t write_block(uint32_t block_idx, const void *buf);
+ssize read_block(u32 block_idx, void *buf);
+ssize write_block(u32 block_idx, const void *buf);
 
 // debug 
 void fs_info(void);
 
 #endif 
-
