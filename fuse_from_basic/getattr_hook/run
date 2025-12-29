@@ -1,0 +1,5 @@
+th device file
+./myfs -f -d mydisk.img /mnt
+
+# without device file 
+./myfs -f -d /mnt

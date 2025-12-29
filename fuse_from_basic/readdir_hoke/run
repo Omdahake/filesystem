@@ -1,0 +1,2 @@
+./fuse_mount -f -d virtual_disk.img /mnt
+

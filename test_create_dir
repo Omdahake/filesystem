@@ -1,0 +1,13 @@
+./virt_dsk mkdir /new1
+./virt_dsk mkdir /new2
+./virt_dsk mkdir /new3
+./virt_dsk mkdir /new1/folder
+./virt_dsk mkdir /new1/folder2
+./virt_dsk mkdir /new2/nested
+./virt_dsk mkdir /new2/nested/nested1
+./virt_dsk mkdir /new2/nested/nested1/nested2
+./virt_dsk mkdir /new2/nested/nested1/nested2/nested3
+./virt_dsk mkdir /new2/nested/nested1/nested2/nested3/nested4
+./virt_dsk mkdir /new2/nested/nested1/nested2/another
+./virt_dsk mkdir /new2/nested/nested1/nested2/nested3/another2
+

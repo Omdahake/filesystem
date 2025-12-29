@@ -1,4 +1,6 @@
 #include "virt_disk.h"
+#include "fsops.c"
+#include "dir.c"
 #include <stdio.h>
 
 int main() {
@@ -23,6 +25,8 @@ int main() {
         free_inode(ino);
         printf("Freed inode %d\n", ino);
     }
-    
+    printf("inod for dir %d",fs_create_dir("/docs/"));
+    printf("Root inode size: %u\n", inode_table[0].size);
+    fs_list_dir_recursive(0,0);
     return 0;
 }

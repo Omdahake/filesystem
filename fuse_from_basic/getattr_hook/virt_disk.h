@@ -5,6 +5,7 @@
 #include <stddef.h> //size_t type and offsetof macro
 #include <unistd.h> // for ssize_t 
 #include <sys/types.h> // off_t (file offset type)
+#include <regex.h>
 typedef uint8_t u8;
 typedef uint32_t u32;
 typedef uint64_t u64;
@@ -137,6 +138,15 @@ int resolve_path(const char *path, int want_target, u32 *out_parent, char *out_n
 // fsops.c 
 int fs_create_file(const char *path);
 int fs_create_dir(const char *path);
+int fs_unlink(const char *path);
+int fs_rename(const char *oldpath, const char *newpath);
+ssize fs_read_file(const char *path,u8 *buf,usize maxlen);
+ssize fs_write_file(const char *path,const u8 *buf,usize len);
+void fs_find_paths(const char *pattern);
+//static void find_paths_recursive(u32 ino, const regex_t *preg);
+char* get_full_path(u32 ino);
 void fs_list_dir_recursive(u32 ino, int depth);
-int fs_rename(const char *oldpath,const char *newpath);
+int fs_delete_dir_recursive(const char *path);
+int delete_inode_recursive(u32 ino);
+
 #endif 

@@ -1,0 +1,1 @@
+gcc -D_FILE_OFFSET_BITS=64 fuse_bridge.c -o fuse_mount virt_disk.c fsops.c dir.c -lfuse -pthread

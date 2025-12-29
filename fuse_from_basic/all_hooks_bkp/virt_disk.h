@@ -5,6 +5,7 @@
 #include <stddef.h> //size_t type and offsetof macro
 #include <unistd.h> // for ssize_t 
 #include <sys/types.h> // off_t (file offset type)
+#include <regex.h>
 typedef uint8_t u8;
 typedef uint32_t u32;
 typedef uint64_t u64;
@@ -14,11 +15,11 @@ typedef ssize_t  ssize;
 #define DISK_PATH "virtual_disk.img" //name for disk
 #define FS_MAGIC 0x47525346 //some random string 'G' 'R' 'S' 'F' 
 
-#define BLOCK_SIZE    1024        // bytes per block 
-#define TOTAL_BLOCKS  8192        // number of blocks 
+#define BLOCK_SIZE    4096        // bytes per block 
+#define TOTAL_BLOCKS  131072        // number of blocks DISK_SIZE/BLOCK_SIZE
 #define MAX_INODES    1024        // number of inodes 
 #define MAX_FILENAME  60          // max filename length 
-#define DIRECT_PTRS   20          // direct block pointers 
+#define DIRECT_PTRS   256          // direct block pointers max size 1mb 
 
 // derived disk size from block size and number of blocks 
 #define DISK_SIZE   ((u64)BLOCK_SIZE * (u64)TOTAL_BLOCKS)
@@ -48,38 +49,17 @@ _Static_assert(sizeof(SuperBlock) == BLOCK_SIZE,
 
 // ---------------- Inode ---------------- 
 
-// just for better reading of filename setting its offset 
-#define INODE_NAME_OFFSET 128
-
-// calculating Inode size to add padding so name start at 64th byte 
-enum {
-    INODE_PREFIX_BYTES = sizeof(u32) +
-        sizeof(u32) +
-        (sizeof(u32) * DIRECT_PTRS) +
-        sizeof(u32) +
-        sizeof(uint8_t)  +
-        sizeof(uint8_t)  
-};
-
-#define INODE_PADDING_BYTES (INODE_NAME_OFFSET - INODE_PREFIX_BYTES)
-
 typedef struct Inode {
     u32 id;                    // inode number 
     u32 size;                  // size in bytes 
     u32 direct[DIRECT_PTRS];   // direct block pointers 
     u32 parent;                // parent inode id 
-
-    uint8_t  is_dir;                // 1=dir, 0=file 
-    uint8_t  used;                  // 1=allocated, 0=free 
-
-    uint8_t  padding[INODE_PADDING_BYTES]; // auto-computed padding 
+    u8  is_dir;                // 1=dir, 0=file 
+    u8  used;                  // 1=allocated, 0=free 
     char     name[MAX_FILENAME];    // filename 
 } Inode;
 
-// Check offsets and sizes 
-_Static_assert(offsetof(Inode, name) == INODE_NAME_OFFSET,
-               "Inode.name offset mismatch");
-_Static_assert(sizeof(Inode) == (INODE_NAME_OFFSET + MAX_FILENAME),
+_Static_assert(sizeof(Inode) <= (BLOCK_SIZE),
                "Inode struct size mismatch");
 
 // ---------------- Directory Entry ---------------- 
@@ -137,6 +117,15 @@ int resolve_path(const char *path, int want_target, u32 *out_parent, char *out_n
 // fsops.c 
 int fs_create_file(const char *path);
 int fs_create_dir(const char *path);
+int fs_unlink(const char *path);
+int fs_rename(const char *oldpath, const char *newpath);
+ssize fs_read_file(const char *path,u8 *buf,usize maxlen);
+ssize fs_write_file(const char *path,const u8 *buf,usize len);
+void fs_find_paths(const char *pattern);
+//static void find_paths_recursive(u32 ino, const regex_t *preg);
+char* get_full_path(u32 ino);
 void fs_list_dir_recursive(u32 ino, int depth);
-int fs_rename(const char *oldpath,const char *newpath);
+int fs_delete_dir_recursive(const char *path);
+int delete_inode_recursive(u32 ino);
+
 #endif 
